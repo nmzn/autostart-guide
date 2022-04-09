@@ -1,0 +1,80 @@
+# autostart guide
+
+Step 1
+
+Create a new file called "nodeboot.sh" with the following content:
+
+```
+nano nodeboot.sh
+```
+
+```
+#!/bin/bash
+
+docker exec -i plinode /bin/bash -c ". ~/.profile && pm2 start /pluginAdm/startNode.sh"
+cd /opt/docker/goplugin/plugin-deployment
+docker exec --env-file ei.env -i plinode /bin/bash -c ". ~/.profile && pm2 start /pluginAdm/startEI.sh"
+
+NOW=$( date '+%F_%H:%M:%S' )
+
+echo "Node started on" $NOW "after reboot!" >> /root/plireboot.log
+
+```
+
+Step 2
+
+copy it in the following folder:
+
+```
+cp nodeboot.sh /usr/local/sbin/
+```
+and grant it rights to be executed:
+
+```
+chmod +x /usr/local/sbin/nodeboot.sh
+```
+
+Step 3
+
+Create another file which will be the service, and add the content:
+
+```
+nano nodeboot.service
+```
+```
+[Unit]
+Description=Auto reboot Service to start up the plugin node automatically.
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/nodeboot.sh
+StandardOutput=Journal
+
+[Install]
+WantedBy=multi-user.target
+```
+
+copy it to the following folder:
+
+```
+cp nodeboot.service /etc/systemd/system/
+```
+
+and grant it permissions to be executed:
+
+```
+chmod +x /etc/systemd/system/nodeboot.service
+```
+
+Step 4
+
+enable the service to start after reboot:
+
+```
+systemctl enable nodeboot.service
+systemctl daemon-reload
+```
+
+
+
+Thats it. If you reboot your VPS, the Node will come up along with the external-initiator.
