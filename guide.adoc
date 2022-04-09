@@ -1,4 +1,4 @@
-# autostart guide
+# autostart guide for plugin docker nodes
 
 Step 1
 
